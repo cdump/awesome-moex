@@ -16,7 +16,7 @@
 -- })
 --
 
-local dkjson = require("dkjson")
+local dkjson = require("./moex/dkjson")
 local string = string
 local pairs = pairs
 local tostring = tostring

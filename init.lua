@@ -69,7 +69,6 @@ function update_quotes()
 	-- http://www.micex.ru/iss/engines/futures/markets/forts/securities.json?iss.meta=off&iss.only=marketdata&securities=SiH6&marketdata.columns=UPDATETIME,OPEN,LOW,HIGH,LAST
 
 	local text
-
 	local data = {}
 
 	for typename, tickerstr in pairs(moex.bytypestr) do
@@ -87,8 +86,8 @@ function update_quotes()
 		end
 		last_type = ticker.typename
 
-		local d = data[ticker.typename][pos]
-		if d ~= nil then
+		if data[ticker.typename] and data[ticker.typename][pos] then
+			local d = data[ticker.typename][pos]
 			moex.tickers[ppos].updtime = d[1]
 			moex.tickers[ppos].open    = d[2]
 			moex.tickers[ppos].low     = d[3]
@@ -112,37 +111,23 @@ function update_quotes()
 	moex.update(text)
 end
 
--- local function get_naughty_text()
--- 	local text =   "/----+--------+--------+--------+--------+--------\\\n"
--- 	text = text .. "| Sy | Change |  Last  |  Open  |   Low  |  High  |\n";
--- 	text = text .. ".----+--------+--------+--------+--------+--------.\n"
---
--- 	for pos,data in pairs(moex.tickers) do
--- 		text = text .. string.format("<span color='#%s'>| %s | %6.2f | %6.3f | %6.3f | %6.3f | %6.3f |</span>\n",
--- 			data.change >= 0 and "33aa33" or "ee4444",
--- 			data.sym, data.change, data.last, data.open, data.low, data.high)
--- 	end
--- 	text = text .. "+----+--------+--------+--------+--------+--------+"
--- 	return string.format('<span font_desc="monospace">%s</span>', text)
--- end
-
 local function format_line(text, ftype, field, usecolor)
 	local len = 9
 	local line = ""
 	for pos,data in pairs(moex.tickers) do
-		local val = string.format(ftype, data[field])
-		local color = "#cccccc"
-		if usecolor then
-			color = data.change > 0 and "#33aa33" or "#ee4444"
+		if data[field] then
+			local val = string.format(ftype, data[field])
+			local color = "#cccccc"
+			if usecolor then
+				color = data.change > 0 and "#33aa33" or "#ee4444"
+			end
+			line = line .. "<span color='" .. color .. "'>" .. val .. "</span>" .. string.rep(' ', len - #val) .. " | "
 		end
-		line = line .. "<span color='" .. color .. "'>" .. val .. "</span>" .. string.rep(' ', len - #val) .. " | "
 	end
 	return text .. string.rep(' ', 6 - #text) .. " | " .. line .. "\n"
 end
 
 local function get_naughty_text()
-	local text = ""
-
 	local text = "<span color='#222222'><b>"
 	text = text .. format_line("", "%s", "sym")
 	text = text .. "</b></span>"
@@ -151,9 +136,9 @@ local function get_naughty_text()
 	text = text .. format_line("Last:", "%.2f", "last", true)
 	text = text .. format_line("Diff:", "%s", "change", true)
 	text = text .. format_line("Upd:", "%s", "updtime")
+	text = text .. format_line("Low:", "%.2f", "low")
 	text = text .. format_line("Open:", "%.2f", "open")
 	text = text .. format_line("High:", "%.2f", "high")
-	text = text .. format_line("Low:", "%.2f", "low")
 
 	return "<span font_desc='monospace'>" .. text .. "</span>"
 end

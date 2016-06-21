@@ -35,8 +35,8 @@ module("moex")
 local moex = {}
 
 local urls = {
-	["currency"] = "http://www.micex.ru/iss/engines/currency/markets/selt/boards/CETS/securities.json",
-	["futures"] = "http://www.micex.ru/iss/engines/futures/markets/forts/securities.json"
+	["currency"] = "http://moex.com/iss/engines/currency/markets/selt/boards/CETS/securities.json",
+	["futures"] = "http://moex.com/iss/engines/futures/markets/forts/securities.json"
 }
 
 function get_quote(url, securities)
@@ -86,19 +86,21 @@ function update_quotes()
 		end
 		last_type = ticker.typename
 
-		if data[ticker.typename] and data[ticker.typename][pos] then
+		if data[ticker.typename] then
 			local d = data[ticker.typename][pos]
-			moex.tickers[ppos].updtime = d[1]
-			moex.tickers[ppos].open    = d[2]
-			moex.tickers[ppos].low     = d[3]
-			moex.tickers[ppos].high    = d[4]
-			moex.tickers[ppos].last    = d[5]
-			moex.tickers[ppos].change  = d[6]
+			if d ~= nil then
+				moex.tickers[ppos].updtime = d[1]
+				moex.tickers[ppos].open    = d[2]
+				moex.tickers[ppos].low     = d[3]
+				moex.tickers[ppos].high    = d[4]
+				moex.tickers[ppos].last    = d[5]
+				moex.tickers[ppos].change  = d[6]
+			end
 		end
 	end
 
 	for ppos,ticker in pairs(moex.tickers) do
-		if ticker.updtime then
+		if ticker.last then
 			if text then
 				text = text .. " | "
 			else

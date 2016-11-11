@@ -40,7 +40,7 @@ local urls = {
 }
 
 function get_quote(url, securities)
-    local f = io.popen("curl -s --connect-timeout 1 -fsm 3 '"..url.."?iss.meta=off&iss.only=marketdata&securities=" .. securities .. "&marketdata.columns=UPDATETIME,OPEN,LOW,HIGH,LAST,CHANGE,LASTTOPREVPRICE'")
+    local f = io.popen("curl A 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36' -s --connect-timeout 1 -fsm 3 '"..url.."?iss.meta=off&iss.only=marketdata&securities=" .. securities .. "&marketdata.columns=UPDATETIME,OPEN,LOW,HIGH,LAST,CHANGE,LASTTOPREVPRICE'")
     local ws = f:read("*all")
     f:close()
 	local obj = dkjson.decode(ws)

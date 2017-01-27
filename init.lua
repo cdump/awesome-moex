@@ -16,6 +16,7 @@
 -- })
 --
 
+local gears  = require("gears")
 local dkjson = require("./moex/dkjson")
 local string = string
 local pairs = pairs
@@ -24,7 +25,6 @@ local os = os
 local print = print
 local io = io
 local capi = {
-	timer = timer,
     mouse = mouse,
     screen = screen
 }
@@ -177,7 +177,7 @@ function addToWidget(mywidget, update, tickers)
 		moex.tickers[pos] = ticker
 	end
 
-	local timer_quotes = capi.timer { timeout = 60 }
+	local timer_quotes = gears.timer { timeout = 60 }
 	timer_quotes:connect_signal("timeout", update_quotes)
 	timer_quotes:start()
 	timer_quotes:emit_signal("timeout")

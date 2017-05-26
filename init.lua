@@ -35,12 +35,12 @@ module("moex")
 local moex = {}
 
 local urls = {
-	["currency"] = "http://moex.com/iss/engines/currency/markets/selt/boards/CETS/securities.json",
-	["futures"] = "http://moex.com/iss/engines/futures/markets/forts/securities.json"
+	["currency"] = "http://iss.moex.com/iss/engines/currency/markets/selt/boards/CETS/securities.json",
+	["futures"] = "http://iss.moex.com/iss/engines/futures/markets/forts/securities.json"
 }
 
 function get_quote(url, securities)
-    local f = io.popen("curl A 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36' -s --connect-timeout 1 -fsm 3 '"..url.."?iss.meta=off&iss.only=marketdata&securities=" .. securities .. "&marketdata.columns=UPDATETIME,OPEN,LOW,HIGH,LAST,CHANGE,LASTTOPREVPRICE'")
+    local f = io.popen("curl --user-agent 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36' -s --connect-timeout 1 -fsm 3 '"..url.."?iss.meta=off&iss.only=marketdata&securities=" .. securities .. "&marketdata.columns=UPDATETIME,OPEN,LOW,HIGH,LAST,CHANGE,LASTTOPREVPRICE'")
     local ws = f:read("*all")
     f:close()
 	local obj = dkjson.decode(ws)
@@ -65,9 +65,6 @@ function format_quote(last, change, sym)
 end
 
 function update_quotes()
-	-- http://www.micex.ru/iss/engines/currency/markets/selt/boards/CETS/securities.json?iss.meta=off&iss.only=marketdata&securities=EUR_RUB__TOM,USD000UTSTOM&marketdata.columns=UPDATETIME,OPEN,LOW,HIGH,LAST
-	-- http://www.micex.ru/iss/engines/futures/markets/forts/securities.json?iss.meta=off&iss.only=marketdata&securities=SiH6&marketdata.columns=UPDATETIME,OPEN,LOW,HIGH,LAST
-
 	local text
 	local data = {}
 

@@ -53,13 +53,12 @@ function get_quote(url, securities)
 end
 
 function format_quote(last, change, sym)
-	local text = string.format('%s<span color="#%s">(%s%.2f%s)</span>%s',
+	local text = string.format('%s%.2f <span color="#%s" font="sans 6">%s%.2f</span>',
+        sym,
 		last,
 		change >= 0 and "33aa33" or "ee4444",
 		change >= 0 and "+" or "",
-		change,
-		xsym or "",
-		sym)
+		change)
 
 	return text
 end
@@ -99,7 +98,7 @@ function update_quotes()
 	for ppos,ticker in pairs(moex.tickers) do
 		if ticker.last then
 			if text then
-				text = text .. " | "
+				text = text .. " <span color='#888'>|</span> "
 			else
 				text = ""
 			end

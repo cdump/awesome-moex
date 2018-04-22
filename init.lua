@@ -39,17 +39,16 @@ local urls = {
 	["futures"] = "http://iss.moex.com/iss/engines/futures/markets/forts/securities.json"
 }
 
-function get_quote(url, securities)
-    local f = io.popen("curl --user-agent 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36' -s --connect-timeout 1 -fsm 3 '"..url.."?iss.meta=off&iss.only=marketdata&securities=" .. securities .. "&marketdata.columns=UPDATETIME,OPEN,LOW,HIGH,LAST,CHANGE,LASTTOPREVPRICE'")
-    local ws = f:read("*all")
-    f:close()
-	local obj = dkjson.decode(ws)
-
-	if obj and obj.marketdata then
-		return obj.marketdata.data
-	else
-		return nil
-	end
+function get_quote(url, securities, cb)
+    local cmd = "curl --user-agent 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36' -s --connect-timeout 1 -fsm 3 '"..url.."?iss.meta=off&iss.only=marketdata&securities=" .. securities .. "&marketdata.columns=UPDATETIME,OPEN,LOW,HIGH,LAST,CHANGE,LASTTOPREVPRICE'"
+    awful.spawn.easy_async(cmd, function(stdout, stderr, reason, exit_code)
+        local obj = dkjson.decode(stdout)
+        if obj and obj.marketdata then
+            cb(obj.marketdata.data)
+        else
+            cb(nil)
+        end
+    end)
 end
 
 function format_quote(last, change, sym)
@@ -63,25 +62,17 @@ function format_quote(last, change, sym)
 	return text
 end
 
-function update_quotes()
+local function update_view(data)
 	local text
-	local data = {}
-
-	for typename, tickerstr in pairs(moex.bytypestr) do
-		data[typename] = get_quote(urls[typename], tickerstr)
-	end
-
 	local last_type
 	local pos = 0
 	for ppos,ticker in pairs(moex.tickers) do
-
 		if last_type and last_type ~= ticker.typename then
 			pos = 1
 		else
 			pos = pos + 1
 		end
 		last_type = ticker.typename
-
 		if data[ticker.typename] then
 			local d = data[ticker.typename][pos]
 			if d ~= nil then
@@ -108,6 +99,27 @@ function update_quotes()
 
 	moex.update(text)
 end
+
+function update_quotes()
+    local updated = 0
+	local data = {}
+
+    local total = 0
+	for typename, tickerstr in pairs(moex.bytypestr) do
+        total = total + 1
+    end
+
+	for typename, tickerstr in pairs(moex.bytypestr) do
+        get_quote(urls[typename], tickerstr, function(v)
+            data[typename] = v
+            updated = updated + 1
+            if updated == total then
+                update_view(data)
+            end
+        end)
+	end
+end
+
 
 local function format_line(text, ftype, field, usecolor)
 	local len = 9

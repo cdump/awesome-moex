@@ -31,7 +31,6 @@ local capi = {
 local awful = require("awful")
 local naughty = require("naughty")
 
-module("moex")
 local moex = {}
 
 local urls = {
@@ -39,7 +38,7 @@ local urls = {
 	["futures"] = "http://iss.moex.com/iss/engines/futures/markets/forts/securities.json"
 }
 
-function get_quote(url, securities, cb)
+local function get_quote(url, securities, cb)
     local cmd = "curl --user-agent 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36' -s --connect-timeout 1 -fsm 3 '"..url.."?iss.meta=off&iss.only=marketdata&securities=" .. securities .. "&marketdata.columns=UPDATETIME,OPEN,LOW,HIGH,LAST,CHANGE,LASTTOPREVPRICE'"
     awful.spawn.easy_async(cmd, function(stdout, stderr, reason, exit_code)
         local obj = dkjson.decode(stdout)
@@ -51,7 +50,7 @@ function get_quote(url, securities, cb)
     end)
 end
 
-function format_quote(last, change, sym)
+local function format_quote(last, change, sym)
 	local text = string.format('%s%.2f <span color="#%s" font="sans 6">%s%.2f</span>',
         sym,
 		last,
@@ -100,7 +99,7 @@ local function update_view(data)
 	moex.update(text)
 end
 
-function update_quotes()
+local function update_quotes()
     local updated = 0
 	local data = {}
 
@@ -153,7 +152,7 @@ local function get_naughty_text()
 	return "<span font_desc='monospace'>" .. text .. "</span>"
 end
 
-function addToWidget(mywidget, update, tickers)
+local function addToWidget(mywidget, update, tickers)
 	moex.widget = mywidget
 	moex.update = update
 
@@ -203,3 +202,7 @@ function addToWidget(mywidget, update, tickers)
 	mywidget:buttons(awful.util.table.join( awful.button({ }, 1, update_quotes)))
 end
 
+
+return {
+    addToWidget = addToWidget,
+}

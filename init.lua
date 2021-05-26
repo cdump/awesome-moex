@@ -35,15 +35,32 @@ local moex = {}
 
 local urls = {
 	["currency"] = "http://iss.moex.com/iss/engines/currency/markets/selt/boards/CETS/securities.json",
-	["futures"] = "http://iss.moex.com/iss/engines/futures/markets/forts/securities.json"
+	["futures"] = "http://iss.moex.com/iss/engines/futures/markets/forts/securities.json",
+	["crypto"] = "crypto",
 }
 
 local function get_quote(url, securities, cb)
-    local cmd = "curl --user-agent 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36' -s --connect-timeout 1 -fsm 3 '"..url.."?iss.meta=off&iss.only=marketdata&securities=" .. securities .. "&marketdata.columns=UPDATETIME,OPEN,LOW,HIGH,LAST,CHANGE,LASTTOPREVPRICE'"
+    local full_url = ''
+    if url == "crypto" then
+        full_url = "https://www.okex.com/api/spot/v3/instruments/" .. securities .. "/ticker"
+    else
+        full_url = url .. "?iss.meta=off&iss.only=marketdata&securities=" .. securities .. "&marketdata.columns=UPDATETIME,OPEN,LOW,HIGH,LAST,CHANGE,LASTTOPREVPRICE"
+    end
+    local cmd = "curl -s --connect-timeout 1 -fsm 3 \"" .. full_url .. "\""
     awful.spawn.easy_async(cmd, function(stdout, stderr, reason, exit_code)
         local obj = dkjson.decode(stdout)
         if obj and obj.marketdata then
             cb(obj.marketdata.data)
+        elseif obj and obj.instrument_id then
+            cb({{
+                '00:00:00',
+                tonumber(obj.open_24h),
+                tonumber(obj.low_24h),
+                tonumber(obj.high_24h),
+                tonumber(obj.last),
+                tonumber(obj.last) - tonumber(obj.open_utc0),
+                0
+            }})
         else
             cb(nil)
         end
